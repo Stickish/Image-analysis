@@ -73,7 +73,7 @@ scatter(pdist(loc_est),variogram_2,'r')
 hold off
 
 %% Create percision matrix
-kappa = 1; %theta_ls.kappa;
+kappa = 1theta_ls.kappa;
 tau = 2*pi/(theta_ls.sigma)^2;
 
 q = kappa^4*[0 0 0 0 0;
