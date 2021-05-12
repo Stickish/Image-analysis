@@ -1,14 +1,18 @@
 %% Test
+clc
+clearvars
 addpath('C:\Users\admin\Desktop\Skola\Image Analysis')
 addpath('C:\Users\admin\Desktop\Skola\Image Analysis\TMS016_matlab\TMS016_funftions')
 addpath('C:\Users\admin\Desktop\Skola\Image Analysis\\')
-
-x = imread('test.png');
+x = imread('101_2.tif');
+%x = imread('testare.png');
+%x = rgb2gray(x);
+%x = imread('101_2.tif');
 x = double(x)/255;
 
 %dumb test code
-x=x(3:322, 6:325);
-size(x)
+%x=x(3:322, 6:325);
+%size(x)
 
 [m, n, d] = size(x);
 figure(1)
@@ -31,20 +35,16 @@ N_t = zeros(size(x_t));
 
 for i=1:n*m
    if x_t(i) < M_image 
-      norm = M_0 + sqrt(V_0*((x_t(i) - M_image)^2)/V);
+      norm = M_0 - sqrt(V_0*((x_t(i) - M_image)^2)/V);
       N_t(i) = norm;
    else
-      N_t(i) = M_0 - sqrt(V_0*((x_t(i) - M_image)^2)/V);
+      N_t(i) = M_0 + sqrt(V_0*((x_t(i) - M_image)^2)/V);
    end
 end
 %%
 figure(2)
 imshow(reshape(N_t, m, []))
-%% Orientation Image Estimation
-
-% # 1. Divide image into blocks
-% # 2. Compute gradients
-% # 3. Estimate orientation based on gradients
+%% Image segmentation
 
 % Dividing into blocks
 w = 20;
@@ -97,147 +97,118 @@ V_bkg = sum(v_bkg)/size(v_bkg, 1);
 
 %%
 % blocks with mean and variance < background 
-
+empty_blocks = [];
+full_blocks = [];
 for i=1:M
     for j=1:N
-        if block_means(i, j) <= M_bkg && block_variances(i, j) <= V_bkg
+        if block_means(i, j) >= M_bkg && block_variances(i, j) <= V_bkg
             C{i, j} = zeros(w, w);
+            empty_blocks = [empty_blocks; i j];
+        else
+            full_blocks = [full_blocks; i j];
         end
     end
 end
 %%
+disp(size(empty_blocks));
+disp(size(full_blocks));
 image_out = cell2mat(C);
 figure(3)
 imshow(image_out);
 
-%% Calculate gradient
-% sobel
-[Gx, Gy] = imgradientxy(image_out);
-%Gx=Gx./8;
-%Gy=Gy./8;
+%% Testing the new gradient computation
 
-Gsx = 2*Gx.*Gy;
-Gsy = Gx.^2 .* Gy.^2;
+% Gradients
+Gx = zeros(m, n);
+Gy = zeros(m, n);
 
-%% Split into blocks and compute for the blocks
-% Init empty vectors for the means of Gsx and Gsy
-Gmsx = zeros(M,N);
-Gmsy = zeros(M,N);
+% Metrics for computing theta
+Gsx = zeros(m, n);
+Gsy = zeros(m, n);
 
-% Split gradients into w x w cells
-Cx = mat2cell(Gsx, rw, cw);
-Cy = mat2cell(Gsy, rw, cw);
-
-% Doesnt care if things are zero right now
-for i=1:M
-    for j=1:N
-        block_x = reshape(Cx{i, j}, 1, []);
-        block_y = reshape(Cy{i, j}, 1, []);
-        vx = sum(block_x);
-        vy = sum(block_y);
-        Gmsx(i, j) = vx;
-        Gmsy(i, j) = vy;
+% Gradient
+for i=2:m-1
+    for j=2:n-1
+        Gx(i, j) = (x(i + 1, j) - x(i - 1, j))/2;
+        Gy(i, j) = (x(i, j + 1) - x(i, j - 1))/2;
     end
 end
-%% Compute angles
 
-theta = 0.5 * atan(Gmsy ./ Gmsx);
-TF = isnan(theta);
-theta(TF) = 0;
-idx = find(theta==0);
-%% Low pass filtering
-[xx, yy] = ndgrid(1:w:m, 1:w:n);
+% For calculating theta
+for i=2:m-1
+    for j=2:n-1
+        Gsx(i, j) = Gx(i,j)^2 - Gy(i,j)^2;
+        Gsy(i,j) = 2*Gx(i, j)*Gy(i, j);
+    end 
+end
 
-[XX, YY] = meshgrid(1:w:m, 1:w:n);
+Gbx2 = zeros(M, N);
+Gby2 = zeros(M, N);
+% block sum
+for i=1:M
+    for j=1:N
+        for xx=1 + (i-1)*w:i*w
+            for yy=1 + (j-1)*w:j*w
+                Gbx2(i, j) = Gbx2(i, j) + Gsx(xx, yy);
+                Gby2(i, j) = Gby2(i, j) + Gsy(xx, yy);
+            end
+        end
+    end
+end
 
-phi_x = cos(2*theta);
-phi_y = sin(2*theta);
+theta2 = zeros(M, N); % Den viktiga
+theta3 = zeros(M, N); % ???????????
+for i=1:M
+    for j=1:N
+        k = Gby2(i, j)/Gbx2(i, j);
+        
+        if Gbx2(i, j)>0
+            theta2(i,j) = pi/2 + atan(k)/2;
+        end
+        
+        if Gbx2(i, j)<0 && Gby2(i,j)>=0
+            theta2(i,j) = pi/2 + (atan(k) + pi)/2;
+        end
+        
+        if Gbx2(i, j)<0 && Gby2(i, j) <0
+            theta2(i,j) = pi/2 + (atan(k) - pi)/2;
+        end
+    end
+end
 
-figure(4)
-imshow(image_out)
-hold on
-quiver(xx, yy, phi_x, phi_y)
+% Väldigt oklart vad det här var, borde kunna ta bort
+for i=1:M
+    for j=1:N
+        theta3(i, j) = atan(Gby2(i, j)/Gbx2(i, j))/2; % ????????????
+    end
+end
 
-%Gaussian filter with mask size 5 std dev 2
-gauss_filter = fspecial('gaussian', 5, 2);
+%filtering
+phix = cos(2*theta2);
+phiy = sin(2*theta2);
 
-phi_xf = imfilter(phi_x, gauss_filter,'conv','replicate');
-phi_yf = imfilter(phi_y, gauss_filter,'conv','replicate');
+f = fspecial('gaussian', 10, 2);
+phix = filter2(f, phix);
+phiy = filter2(f, phiy);
 
-O = 0.5 * atan(phi_yf ./ phi_xf);
-
+O1 = 0.5*atan2(phiy, phix);
+%% Plotting
 figure(5)
-hold on
-quiver(1:1:m, 1:1:n, Gx, Gy)
-%%
-figure(5)
-imshow(image_out)
+%imshow(image_out)
 hold on
 for i=1:M
     for j=1:N
-        T = angles(i, j);
+        T = O1(i, j);
         x_s = round(w/2) + (i - 1)*w;
         y_s = round(w/2) + (j - 1)*w;
         len = 10;
         x_e = x_s + len*cos(T);
         y_e = y_s + len*sin(T);
-        plot([x_s, x_e], [y_s, y_e])
+        plot([y_s, y_e], [x_s, x_e])
     end
 end
 
-
-%% Rotate image - let's say it's good enough for now
-C = mat2cell(image_out, rw, cw);
-
-rot_block = C{20, 20};
-
-P1 = [0 1; -1 0];
-P2 = [0 -1; 1 0];
-o = pi/2 - O(20, 20);
-
-R = [cos(o) -sin(o); sin(o) cos(o)];
-y = zeros(w,w);
-v = [];
-disp('start')
-for i=1:w
-    for j=1:w
-        
-        v = ceil(P2*R*P1*[i, j]');
-        if v(1)<=0
-            v(1)=1;
-        end
-        if v(2)<=0
-            v(2)=1;
-        end
-        y(v(1), v(2)) = x(i, j);
-    end
-end
-
-%% Testing the new gradient computation
-
-t_C = mat2cell(image_out, rw, cw);
-angles = zeros(M,N);
-
-b_sigma = 2;
-g_sigma = 5;
-o_sigma = 7;
-
-for i=1:M
-    for j=1:N
-        angles(i,j) = ridgeorient(t_C{i, j}, g_sigma, b_sigma, o_sigma);
-    end
-end
-
-
-
-
-
-
-
-
-
-
-
+%% Fourier time bby
 
 
 
