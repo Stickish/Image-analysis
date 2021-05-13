@@ -344,29 +344,36 @@ imshow(freq_image_f)
 E = image_out;
 C_E = mat2cell(E, rw, cw);
 magn = C_E;
+phases = C_E;
 num_full_blocks = size(full_blocks,1);
 
 for idx=1:num_full_blocks
     i = full_blocks(idx,1);
     j = full_blocks(idx,2);
     
-    filter_orient = O1(i,j);
-    filter_freq = block_freq(i,j);
+    if rad2deg(O1(i,j)) < 0
+        filter_orient = rad2deg(O1(i,j)) + 180;
+    else
+        filter_orient = rad2deg(O1(i,j));
+    end
+    
+    
+    filter_lambda = 1/block_freq(i,j)
     block_to_filter = C_E{i, j};
     
-    [mag, phase] = imgaborfilt(block_to_filter, 1/filter_freq, filter_orient);
+    [mag, phase] =  imgaborfilt(block_to_filter, filter_lambda, filter_orient, ...
+                    'SpatialAspectRatio', 4.0, 'SpatialFrequencyBandwidth', 2.0);
     magn{i,j}=mag;
-    
+    phases{i,j}=phase;
     
     
 end
 %%
-magn = cell2mat(magn);
-max(magn)
-
-
-
-
+%magn = cell2mat(magn);
+subplot(1,2,1)
+imshow(cell2mat(phases))
+subplot(1,2,2)
+imshow(cell2mat(magn))
 
 
 
