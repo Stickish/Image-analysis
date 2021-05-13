@@ -1,13 +1,13 @@
 %% Spatial Statistics and Image Analysis - TMS016
-addpath('/Users/hannaskytt/Library/Mobile Documents/com~apple~CloudDocs/Documents/Chalmers/Master/Årskurs_4/Spatial Statistics and Image Analysis/TMS016_Matlab')
-tms016path
+% addpath('/Users/hannaskytt/Library/Mobile Documents/com~apple~CloudDocs/Documents/Chalmers/Master/Årskurs_4/Spatial Statistics and Image Analysis/TMS016_Matlab')
+% tms016path
 
 % LOAD AND PREPROCESS DATA
 clc, clear
 clf, close all
 
 % Load original image
-img_orig = im2double(imread("Data/DB1_B/109_7.tif"));
+img_orig = im2double(imread("Databaser/DB1_B/109_7.tif"));
 [m, n] = size(img_orig);
 
 % NORMALIZATION
@@ -149,7 +149,7 @@ for i=1:M
     end
 end
 
-% GAUSSIAN FILTER
+% GAUSSIAN LOW PASS FILTER
 %filtering
 phix = cos(2*theta);
 phiy = sin(2*theta);
@@ -191,7 +191,8 @@ for i=1:M
 end
 hold off
 
-subplot(2,2,4);
+%subplot(2,2,4);
+figure(2)
 imshow(img_seg)
 title('Orientation field with Gaussian filter')
 hold on;
