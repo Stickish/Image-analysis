@@ -10,6 +10,10 @@ x = imread('101_2.tif');
 %x = imread('101_2.tif');
 x = double(x)/255;
 
+%invert image
+x = 1 - x;
+
+
 %dumb test code
 %x=x(3:322, 6:325);
 %size(x)
@@ -41,6 +45,11 @@ for i=1:n*m
       N_t(i) = M_0 + sqrt(V_0*((x_t(i) - M_image)^2)/V);
    end
 end
+
+% rescale
+idx = find(N_t<0);
+N_t(idx) = 0;
+
 %%
 figure(2)
 imshow(reshape(N_t, m, []))
@@ -62,9 +71,9 @@ block_variances = zeros(size(block_means));
 for i=1:M
     for j=1:N
        block = reshape(C{i, j}, 1, []);
-       mean = sum(block)/(w * w);
-       block_means(i, j) = mean;
-       block_variances(i, j) = sum((block - mean).^2)/(w * w);
+       block_mean = sum(block)/(w * w);
+       block_means(i, j) = block_mean;
+       block_variances(i, j) = sum((block - block_mean).^2)/(w * w);
     end 
 end
 
@@ -101,7 +110,7 @@ empty_blocks = [];
 full_blocks = [];
 for i=1:M
     for j=1:N
-        if block_means(i, j) >= M_bkg && block_variances(i, j) <= V_bkg
+        if block_means(i, j) <= M_bkg && block_variances(i, j) <= V_bkg
             C{i, j} = zeros(w, w);
             empty_blocks = [empty_blocks; i j];
         else
@@ -194,7 +203,7 @@ phiy = filter2(f, phiy);
 O1 = 0.5*atan2(phiy, phix);
 %% Plotting
 figure(5)
-%imshow(image_out)
+imshow(image_out)
 hold on
 for i=1:M
     for j=1:N
@@ -204,11 +213,165 @@ for i=1:M
         len = 10;
         x_e = x_s + len*cos(T);
         y_e = y_s + len*sin(T);
-        plot([y_s, y_e], [x_s, x_e])
+        plot([y_s, y_e], [x_s, x_e], 'r-')
     end
 end
 
 %% Fourier time bby
+% Constants
+minWaveLength = 5;
+maxWaveLength = 25;
+windsze = w/2;
+frequencies = zeros(m,n);
+C_f = mat2cell(frequencies, rw, cw);
+block_freq = zeros(M, N);
+for i=1:M
+    for j=1:N
+        im = C{i, j};
+        orient = O1(i,j);
+        
+        % Rotate image
+        rotim = imrotate(im,orient/pi*180+90,'nearest', 'crop');
+        
+        % Crop image
+        cropsze = fix(w/sqrt(2)); offset = fix((w-cropsze)/2);
+        rotim = rotim(offset:offset+cropsze, offset:offset+cropsze);
+        
+        % Sum the values of ridges and valleys
+        proj = sum(rotim);
+        
+        % Find peaks in projected grey values by performing a greyscale
+        % dilation and then finding where the dilation equals the original
+        % values.
+
+        dilation = ordfilt2(proj, windsze, ones(1,windsze));
+        maxpts = (dilation == proj) & (proj > mean(proj));
+        maxind = find(maxpts);
+        
+        if length(maxind) >= 2
+            num_peaks = length(maxind);
+            lambda = (maxind(end)-maxind(1))/(num_peaks-1);
+            
+            if lambda > minWaveLength && lambda < maxWaveLength
+                C_f{i, j} = 1/lambda * ones(size(im));
+                block_freq(i, j) = 1/lambda;
+            end
+        
+        end
+    end
+end
+%%
+figure(10)
+subplot(2,1,1)
+freq_image = cell2mat(C_f);
+num_full_blocks = size(full_blocks,1);
+imshow(freq_image)
+
+temp_mat = zeros(m,n);
+temp_cell = mat2cell(temp_mat, rw, cw);
+
+for idx=1:num_full_blocks
+    i = full_blocks(idx,1);
+    j = full_blocks(idx,2);
+    temp_cell{i,j} = ones(w,w);
+end
+
+subplot(2,1,2)
+imshow(cell2mat(temp_cell))
+%% Interpolate frequencies for the bifurcation blocks
+num_full_blocks = size(full_blocks,1);
+
+for idx=1:num_full_blocks
+    i = full_blocks(idx,1);
+    j = full_blocks(idx,2);
+    
+    freq = block_freq(i, j);
+    if freq == 0
+        if i==1
+            A = zeros(5,5);
+            A(1, :) = block_freq(i, j-2:j+2);
+            A(2, :) = block_freq(i, j-2:j+2);
+            A(3, :) = block_freq(i, j-2:j+2);
+            A(4, :) = block_freq(i+1, j-2:j+2);
+            A(5, :) = block_freq(i+2, j-2:j+2);
+        elseif i==2
+            A = zeros(5,5);
+            A(1, :) = block_freq(i-1, j-2:j+2);
+            A(2, :) = block_freq(i-1, j-2:j+2);
+            A(3, :) = block_freq(i, j-2:j+2);
+            A(4, :) = block_freq(i+1, j-2:j+2);
+            A(5, :) = block_freq(i+2, j-2:j+2);
+            
+        elseif i==24
+            A = zeros(5,5);
+            A(1, :) = block_freq(i-2, j-2:j+2);
+            A(2, :) = block_freq(i-1, j-2:j+2);
+            A(3, :) = block_freq(i, j-2:j+2);
+            A(4, :) = block_freq(i, j-2:j+2);
+            A(5, :) = block_freq(i, j-2:j+2);
+            
+        elseif i==23
+            A = zeros(5,5);
+            A(1, :) = block_freq(i-2, j-2:j+2);
+            A(2, :) = block_freq(i-1, j-2:j+2);
+            A(3, :) = block_freq(i, j-2:j+2);
+            A(4, :) = block_freq(i+1, j-2:j+2);
+            A(5, :) = block_freq(i+1, j-2:j+2);
+        else
+            A = zeros(5,5);
+            A(:, :) = block_freq(i-2:i+2, j-2:j+2);
+        end
+        f = fspecial('gaussian', 5, 9);
+        A_f = imgaussfilt(A, 12);
+        new_freq = sum(sum(A_f))/25;
+        block_freq(i,j) = new_freq;
+        im_freq = ones(w,w)*new_freq;
+        C_f{i, j} = im_freq;
+    end
+end
+
+freq_image_f = cell2mat(C_f);
+
+figure(11)
+subplot(1,2,1)
+imshow(freq_image)
+title('original')
+subplot(1,2,2)
+imshow(freq_image_f)
+
+%% Enhancing image with Gabor filter
+
+E = image_out;
+C_E = mat2cell(E, rw, cw);
+magn = C_E;
+num_full_blocks = size(full_blocks,1);
+
+for idx=1:num_full_blocks
+    i = full_blocks(idx,1);
+    j = full_blocks(idx,2);
+    
+    filter_orient = O1(i,j);
+    filter_freq = block_freq(i,j);
+    block_to_filter = C_E{i, j};
+    
+    [mag, phase] = imgaborfilt(block_to_filter, 1/filter_freq, filter_orient);
+    magn{i,j}=mag;
+    
+    
+    
+end
+%%
+magn = cell2mat(magn);
+max(magn)
+
+
+
+
+
+
+
+
+
 
 
 
