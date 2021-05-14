@@ -1,8 +1,9 @@
-function img_seg = segmentImage(img_norm)
+function img_seg = segmentImage(img_norm, block_size)
 %Takes in a normalized image
 
 
-[m, n] = size(img_norm, block_size);
+[m, n] = size(img_norm);
+
 % Dividing into blocks
 w = block_size;
 M = floor(m/w);
