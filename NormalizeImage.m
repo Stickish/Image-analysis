@@ -11,7 +11,7 @@ var0 = 50;
 
 for i = 1:m
     for j = 1:n
-        if img(i,j) >= img_mean
+        if img(i,j) > img_mean
             img_norm(i,j) = mean0 + sqrt(var0*(img(i,j)-img_mean).^2/img_var);
         else
             img_norm(i,j) = mean0 - sqrt(var0*(img(i,j)-img_mean)^2/img_var);
