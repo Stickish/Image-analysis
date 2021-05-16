@@ -212,4 +212,4 @@ for i=1:M
 end
 hold off;
 
-sgtitle('Image enhancement') 
+sgtitle('Image enhancement')
