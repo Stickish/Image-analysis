@@ -1,5 +1,6 @@
 function [] = plotOrientation(img_seg,theta, block_size)
 
+[m, n] = size(img_seg);
 w = block_size;
 M = floor(m/w);
 N = floor(n/w);

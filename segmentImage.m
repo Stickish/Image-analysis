@@ -1,4 +1,4 @@
-function img_seg = segmentImage(img_norm, block_size)
+function [img_seg, full_blocks, empty_blocks] = segmentImage(img_norm, block_size)
 %Takes in a normalized image
 
 
@@ -51,11 +51,16 @@ V_bkg = mean(v_bkg(:));
 
 % blocks with greater mean and smaller variance is the background. Set
 % those to zero
+empty_blocks = [];
+full_blocks = [];
 
 for i=1:M
     for j=1:N
         if block_means(i, j) >= M_bkg && block_variances(i, j) <= V_bkg
             C{i, j} = zeros(w, w);
+            empty_blocks = [empty_blocks; i j];
+        else
+            full_blocks = [full_blocks; i j];
         end
     end
 end
