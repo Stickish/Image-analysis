@@ -1,5 +1,5 @@
 %% Adding the path
-addpath('C:\Users\Sara\Documents\Skola\TMS016\TMS016_Matlab')
+%addpath('C:\Users\Sara\Documents\Skola\TMS016\TMS016_Matlab')
 tms016path
 
 %% load images
@@ -24,10 +24,15 @@ colormap gray
 
 %% remove pixels with prob pc
 
-img = img_titan;
-m = m_t;
-n = n_t;
-p_c = 0.5;
+% img = img_titan;
+% m = m_t;
+% n = n_t;
+
+img = img_rosetta;
+m = m_r;
+n = n_r;
+
+p_c = 0.9;
 
 img = img(:);
 N = round(length(img) - p_c*length(img)); %Number of observed pixels

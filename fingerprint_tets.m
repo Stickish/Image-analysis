@@ -8,19 +8,18 @@ x = imread('101_2.tif');
 %x = imread('testare.png');
 %x = rgb2gray(x);
 %x = imread('101_2.tif');
-x = double(x)/255;
+x = double(x);% /255;
 
 %invert image
-x = 1 - x;
-
-
+x = 255 - x;
+x = double(x);
 %dumb test code
 %x=x(3:322, 6:325);
 %size(x)
 
 [m, n, d] = size(x);
 figure(1)
-imshow(x)
+imshow(uint8(255-x))
 %% Normalizing image
 % Flatten image
 x_t = reshape(x, 1, []);
@@ -32,8 +31,8 @@ M_image = sum(x_t)*scale;
 % Variance
 V = scale*(sum((x_t - M_image).^2));
 
-V_0 = 50/255; % from litterature
-M_0 = 150/255; % fomr litterature
+V_0 = 50; %/255; % from litterature
+M_0 = 150; %/255; % fomr litterature
 
 N_t = zeros(size(x_t));
 
@@ -52,7 +51,7 @@ N_t(idx) = 0;
 
 %%
 figure(2)
-imshow(reshape(N_t, m, []))
+imshow(uint8(255 - reshape(N_t, m, [])))
 %% Image segmentation
 
 % Dividing into blocks
@@ -123,7 +122,7 @@ disp(size(empty_blocks));
 disp(size(full_blocks));
 image_out = cell2mat(C);
 figure(3)
-imshow(image_out);
+imshow(uint8(255-image_out));
 
 %% Testing the new gradient computation
 
@@ -196,18 +195,20 @@ end
 phix = cos(2*theta2);
 phiy = sin(2*theta2);
 
-f = fspecial('gaussian', 10, 2);
+O_unfiltered = 0.5*atan2(phiy,phix);
+
+f = fspecial('gaussian', 5, 2);
 phix = filter2(f, phix);
 phiy = filter2(f, phiy);
 
 O1 = 0.5*atan2(phiy, phix);
 %% Plotting
 figure(5)
-imshow(image_out)
+imshow(uint8(255-image_out))
 hold on
 for i=1:M
     for j=1:N
-        T = O1(i, j);
+        T = O_unfiltered(i, j);
         x_s = round(w/2) + (i - 1)*w;
         y_s = round(w/2) + (j - 1)*w;
         len = 10;
@@ -261,7 +262,7 @@ for i=1:M
     end
 end
 %%
-figure(10)
+figure(8)
 subplot(2,1,1)
 freq_image = cell2mat(C_f);
 num_full_blocks = size(full_blocks,1);
@@ -278,66 +279,23 @@ end
 
 subplot(2,1,2)
 imshow(cell2mat(temp_cell))
-%% Interpolate frequencies for the bifurcation blocks
-num_full_blocks = size(full_blocks,1);
-
-for idx=1:num_full_blocks
-    i = full_blocks(idx,1);
-    j = full_blocks(idx,2);
-    
-    freq = block_freq(i, j);
-    if freq == 0
-        if i==1
-            A = zeros(5,5);
-            A(1, :) = block_freq(i, j-2:j+2);
-            A(2, :) = block_freq(i, j-2:j+2);
-            A(3, :) = block_freq(i, j-2:j+2);
-            A(4, :) = block_freq(i+1, j-2:j+2);
-            A(5, :) = block_freq(i+2, j-2:j+2);
-        elseif i==2
-            A = zeros(5,5);
-            A(1, :) = block_freq(i-1, j-2:j+2);
-            A(2, :) = block_freq(i-1, j-2:j+2);
-            A(3, :) = block_freq(i, j-2:j+2);
-            A(4, :) = block_freq(i+1, j-2:j+2);
-            A(5, :) = block_freq(i+2, j-2:j+2);
-            
-        elseif i==24
-            A = zeros(5,5);
-            A(1, :) = block_freq(i-2, j-2:j+2);
-            A(2, :) = block_freq(i-1, j-2:j+2);
-            A(3, :) = block_freq(i, j-2:j+2);
-            A(4, :) = block_freq(i, j-2:j+2);
-            A(5, :) = block_freq(i, j-2:j+2);
-            
-        elseif i==23
-            A = zeros(5,5);
-            A(1, :) = block_freq(i-2, j-2:j+2);
-            A(2, :) = block_freq(i-1, j-2:j+2);
-            A(3, :) = block_freq(i, j-2:j+2);
-            A(4, :) = block_freq(i+1, j-2:j+2);
-            A(5, :) = block_freq(i+1, j-2:j+2);
-        else
-            A = zeros(5,5);
-            A(:, :) = block_freq(i-2:i+2, j-2:j+2);
-        end
-        f = fspecial('gaussian', 5, 9);
-        A_f = imgaussfilt(A, 12);
-        new_freq = sum(sum(A_f))/25;
-        block_freq(i,j) = new_freq;
-        im_freq = ones(w,w)*new_freq;
-        C_f{i, j} = im_freq;
+%% Smoothen the frequencies
+clc
+new_freq = SmoothFrequencies(block_freq, 9, 7, full_blocks);
+nfc = mat2cell(zeros(m, n), rw, cw);
+for i=1:M
+    for j=1:N
+        nf = ones(w, w)*new_freq(i, j);
+        nfc{i, j} = nf;
     end
 end
 
-freq_image_f = cell2mat(C_f);
+f = fspecial('gaussian', 7, 1); % size from litterature, sigma=1 looked ok
 
-figure(11)
-subplot(1,2,1)
-imshow(freq_image)
-title('original')
-subplot(1,2,2)
-imshow(freq_image_f)
+nfm = cell2mat(nfc);
+nfm = filter2(f, nfm);  
+figure(15)
+imshow(nfm)
 
 %% Enhancing image with Gabor filter
 
@@ -350,7 +308,6 @@ num_full_blocks = size(full_blocks,1);
 for idx=1:num_full_blocks
     i = full_blocks(idx,1);
     j = full_blocks(idx,2);
-    
     if rad2deg(O1(i,j)) < 0
         filter_orient = rad2deg(O1(i,j)) + 180;
     else
@@ -358,22 +315,50 @@ for idx=1:num_full_blocks
     end
     
     
-    filter_lambda = 1/block_freq(i,j)
+    filter_lambda = 1/new_freq(i,j);
+    if filter_lambda <2
+        filter_lambda = 2;
+    end
     block_to_filter = C_E{i, j};
     
     [mag, phase] =  imgaborfilt(block_to_filter, filter_lambda, filter_orient, ...
-                    'SpatialAspectRatio', 4.0, 'SpatialFrequencyBandwidth', 2.0);
+                    'SpatialAspectRatio', 4, 'SpatialFrequencyBandwidth', 1.34);
     magn{i,j}=mag;
     phases{i,j}=phase;
-    
-    
 end
+
+magn_img = cell2mat(magn);
+phase_img = cell2mat(phases);
 %%
 %magn = cell2mat(magn);
-subplot(1,2,1)
-imshow(cell2mat(phases))
-subplot(1,2,2)
-imshow(cell2mat(magn))
+figure(12)
+%subplot(1,2,1)
+imshow(phase_img)
+
+figure(13)
+%subplot(1,2,2)
+imshow(uint8(magn_img))
+% subplot(2,2,3)
+% imshow(freq_image)
+% subplot(2,2,4)
+% imshow(freq_image_f)
+%%
+
+% Convert O to matrix
+O_cell = mat2cell(image_out, rw, cw);
+for i=1:M
+    for j=1:N
+        angle = O1(i, j);
+        angles = angle * ones(w,w);
+        O_cell{i,j}= angles;
+    end
+end
+O_matrix = cell2mat(O_cell);
+figure(15)
+imshow(O_matrix)
+
+
+
 
 
 
