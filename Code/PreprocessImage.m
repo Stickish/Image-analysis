@@ -1,4 +1,4 @@
-function [img_bin, img_skel] = PreprocessImage(img)
+function [img_bin, img_skel, empty_blocks] = PreprocessImage(img)
 % LOAD AND PREPROCESS DATA
 % Load original image
 file = strcat(img, '.tif');
@@ -21,7 +21,7 @@ saveas(fig_norm, str);
 
 % Segment image
 w = 10;
-img_seg = SegmentImage(img_norm, w);
+[img_seg, full_blocks, empty_blocks] = SegmentImage(img_norm, w);
 
 fig_seg = figure;
 imshow(img_seg);

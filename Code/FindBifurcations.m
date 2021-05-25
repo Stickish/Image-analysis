@@ -11,6 +11,8 @@ for idx = 1:length(i_bif)
     %not close to the edge
     if i == 1 || i == size(img,1) || j == 1 || j == size(img,2)
         nsum = 0;
+    elseif i == 2 || i == size(img,1)-1 || j == 2 || j == size(img,2)-2
+        nsum = 0;
     else
         nsum = img(i-1,j) + img(i+1,j) + img(i,j+1) + img(i,j-1)+ img(i-1,j-1) + img(i+1,j+1) + img(i-1,j+1) + img(i+1,j-1);
     end
