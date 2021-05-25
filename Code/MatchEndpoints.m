@@ -4,6 +4,9 @@ function [total_end, matches] = MatchEndpoints(img_1, img_bin_1, img_skel_1, img
 
 features_1 = GetFeatures(img_bin_1, [i_1, j_1]);
 features_2 = GetFeatures(img_bin_2, [i_2, j_2]);
+
+RemoveFeatures(features_1);
+
 total_end = length(i_1) + length(i_2);
 matches = matchFeatures(features_1, features_2, 'MaxRatio', 1);
 
