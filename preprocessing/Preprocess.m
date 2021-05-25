@@ -48,8 +48,42 @@ imshow(freq_image_f)
 [magn_image, phase_image] = FilterImage(segmented_image, new_freq, O1, rw, cw, full_blocks);
 
 figure(7)
-imshow(uint8(255 - magn_image))
+imshow(magn_image)
 
 figure(8)
 imshow(phase_image)
+
+%% Binarize image
+
+bin_image = imbinarize(magn_image/255, 'adaptive', 'ForegroundPolarity','dark');
+
+figure(9)
+imshow(bin_image)
+
+%%
+bw_img = bwmorph(bin_image, 'fill',5);
+bw_img = bwmorph(bw_img, 'hbreak',5);
+bw_img = bwmorph(bw_img, 'clean',5);
+bw_img = bwmorph(bw_img, 'fill',5);
+bw_img = bwmorph(bw_img, 'clean',5);
+bw_img = bwmorph(bw_img, 'hbreak',5);
+
+figure(10)
+imshow(bw_img)
+
+%%
+
+skel_img = bwmorph(bw_img, 'skel');
+skel_img = bwmorph(skel_img, 'clean',10);
+skel_img = bwmorph(skel_img, 'diag',10);
+skel_img = bwmorph(skel_img, 'spur',10);
+skel_img = bwmorph(skel_img, 'skel');
+skel_img = bwmorph(skel_img, 'spur');
+skel_img = bwmorph(skel_img, 'diag',10);
+skel_img = bwmorph(skel_img, 'thin',10);
+
+figure(11)
+imshow(skel_img)
+
+
 
