@@ -4,6 +4,7 @@ function [total_bif, matches] = MatchBifurcations(img_1, img_bin_1, img_skel_1, 
 
 features_1 = GetFeatures(img_bin_1, [i_1, j_1]);
 features_2 = GetFeatures(img_bin_2, [i_2, j_2]);
+
 total_bif = length(i_1) + length(i_2);
 matches = matchFeatures(features_1, features_2, 'MaxRatio', 1);
 
