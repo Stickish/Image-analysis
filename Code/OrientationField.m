@@ -1,7 +1,6 @@
-function theta = OrientationField(img_seg, block_size)
+function theta = OrientationField(img_seg, m, n, w, M, N)
 %Takes in a normalized and segmented image
 
-[m, n] = size(img_seg);
 % Calculate gradient
 Gx = zeros(m, n);
 Gy = zeros(m, n);
@@ -25,10 +24,6 @@ for i=2:m-1
         Gsy(i,j) = 2*Gx(i, j)*Gy(i, j);
     end
 end
-
-w = block_size;
-M = floor(m/w);
-N = floor(n/w);
 
 Gmsx = zeros(M, N);
 Gmsy = zeros(M, N);

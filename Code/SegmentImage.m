@@ -1,16 +1,7 @@
-function [img_seg, full_blocks, empty_blocks] = SegmentImage(img_norm, block_size)
+function [img_seg, full_blocks, empty_blocks] = SegmentImage(img_norm, w, M, N, rw, cw)
 %Takes in a normalized image
 
-
-[m, n] = size(img_norm);
-
 % Dividing into blocks
-w = block_size;
-M = floor(m/w);
-N = floor(n/w);
-
-rw = w*ones(1, M);
-cw = w*ones(1, N);
 
 C = mat2cell(img_norm, rw, cw);  % Divides the image into blocks
 
@@ -55,8 +46,8 @@ full_blocks = [];
 
 for i=1:M
     for j=1:N
-        if block_means(i, j) >= M_bkg && block_variances(i, j) <= V_bkg
-            C{i, j} = ones(w, w);
+        if block_means(i, j) <= M_bkg && block_variances(i, j) <= V_bkg
+            C{i, j} = zeros(w, w);
             empty_blocks = [empty_blocks; i j];
         else
             full_blocks = [full_blocks; i j];

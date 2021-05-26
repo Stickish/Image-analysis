@@ -1,16 +1,8 @@
-function [] = PlotOrientation(img_seg,theta, block_size)
-
-[m, n] = size(img_seg);
-w = block_size;
-M = floor(m/w);
-N = floor(n/w);
-
-rw = w*ones(1, M);
-cw = w*ones(1, N);
+function [] = PlotOrientation(img_seg,theta, w, M, N, rw, cw)
 
 C = mat2cell(img_seg, rw, cw);
 
-imshow(img_seg);
+imshow(uint8(img_seg));
 title('Orientation field')
 hold on
 for i=1:M

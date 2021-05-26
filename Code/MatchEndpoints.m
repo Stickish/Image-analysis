@@ -1,6 +1,8 @@
-function [total_end, matches] = MatchEndpoints(img_1, img_bin_1, img_skel_1, empty_blocks_1, img_2, img_bin_2, img_skel_2, empty_blocks_2)
-[i_1, j_1] = FindEndpoints(img_1, img_skel_1, empty_blocks_1);
-[i_2, j_2] = FindEndpoints(img_2, img_skel_2, empty_blocks_2);
+function [total_end, matches] = MatchEndpoints(img_1, img_bin_1, img_skel_1, empty_blocks_1,...
+                                               img_2, img_bin_2, img_skel_2, empty_blocks_2, w)
+
+[i_1, j_1] = FindEndpoints(img_1, img_skel_1, empty_blocks_1, w);
+[i_2, j_2] = FindEndpoints(img_2, img_skel_2, empty_blocks_2, w);
 
 features_1 = GetFeatures(img_bin_1, [i_1, j_1]);
 features_2 = GetFeatures(img_bin_2, [i_2, j_2]);

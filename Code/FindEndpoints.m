@@ -1,4 +1,4 @@
-function [i_end,j_end] = FindEndpoints(name, img, empty_blocks)
+function [i_end,j_end] = FindEndpoints(name, img, empty_blocks, w)
 
 endpoints = bwmorph(img, 'endpoints');
 [i_end,j_end] = find(endpoints);
@@ -43,17 +43,18 @@ for x1 = 1:X
             endpoints(i_end(x2),j_end(x2)) = 0;
         end
     end
+    
     for e = 1:length(empty_blocks)
-        xv = 10*(empty_blocks(e,1)-1)+1;
-        yv = 10*(empty_blocks(e,2)-1)+1;
+        xv = w*(empty_blocks(e,1)-1)+1;
+        yv = w*(empty_blocks(e,2)-1)+1;
         p1 = [xv, yv];
-        p2 = [xv+9, yv];
-        p3 = [xv, yv+9];
-        p4 = [xv+9, yv+9];
-        p5 = [xv, yv+5];
-        p6 = [xv+9, yv+5];
-        p7 = [xv+5, yv];
-        p8 = [xv+5, yv+9];
+        p2 = [xv+(w - 1), yv];
+        p3 = [xv, yv+(w - 1)];
+        p4 = [xv+(w - 1), yv+(w - 1)];
+        p5 = [xv, yv+round(w/2)];
+        p6 = [xv+(w - 1), yv+round(w/2)];
+        p7 = [xv+round(w/2), yv];
+        p8 = [xv+round(w/2), yv+(w - 1)];
 
         if sqrt((i_end(x1)-p1(1))^2+(j_end(x1)-p1(2))^2) <= 20 || sqrt((i_end(x1)-p2(1))^2+(j_end(x1)-p2(2))^2) <= 20 || sqrt((i_end(x1)-p3(1))^2+(j_end(x1)-p3(2))^2) <= 20 || sqrt((i_end(x1)-p4(1))^2+(j_end(x1)-p4(2))^2) <= 20
             endpoints(i_end(x1),j_end(x1)) = 0;

@@ -1,5 +1,4 @@
 function img_norm = NormalizeImage(img)
-img = img*255;
 [m, n] = size(img);
 img_norm = zeros(m,n);
 img_mean = mean(img(:));
@@ -17,7 +16,5 @@ for i = 1:m
         end
     end
 end
-
-img_norm = img_norm/255;
 
 end
