@@ -1,4 +1,4 @@
-function [img_orig, img_bin, img_skel, empty_blocks, w] = PreprocessImage(img, w, print)
+function [img_norm, img_bin, img_skel, empty_blocks, w] = PreprocessImage(img, w, print)
 % LOAD AND PREPROCESS DATA
 % Load original image
 file = strcat(img, '.tif');
@@ -7,24 +7,6 @@ db = img(1:10);
 
 img_orig = double(imread(file));
 img_orig = 255 - img_orig;
-
-[m, n] = size(img_orig);
-meanColor = mean(img_orig(:));
-if mod(m, 20) == 0
-else
-    if mod(n, 20) == 0
-    else
-        nrExtraCols = 20-mod(n,20);
-        zc = ones(m, nrExtraCols)*meanColor;
-        img_orig = [img_orig zc];
-        [m, n] = size(img_orig);
-    end
-    nrExtraRows = 20-mod(m,20);
-    zr = ones(nrExtraRows, n)*meanColor;
-    img_orig = [img_orig; zr];
-end
-
-[m, n] = size(img_orig);
 
 if print
     fig_orig = figure;
@@ -35,9 +17,24 @@ if print
     saveas(fig_orig, str);
 end
 
+% Padding image
+database = img(8);
+img_padd = PaddingImage(img_orig, database);
+
+[m, n] = size(img_padd);
+
+if print
+    fig_padd = figure;
+    imshow(uint8(img_padd));
+    name = char(img);
+    loc = strcat(db, '/Images/');
+    str = strcat(loc, name(12:end), '_padd.png');
+    saveas(fig_padd, str);
+end
+
 
 % Normalize image
-img_norm = NormalizeImage(img_orig);
+img_norm = NormalizeImage(img_padd);
 
 if print
     fig_norm = figure;

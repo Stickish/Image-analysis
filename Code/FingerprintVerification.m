@@ -2,12 +2,11 @@
 clc, clear
 clf, close all
 
-img_1 = "Data/DB1_B/101_2";
-img_2 = "Data/DB1_B/101_2";
+img_1 = "Data/DB2_B/101_2";
+img_2 = "Data/DB2_B/101_2";
 
-% Kolla storleken och räkna ut w
 w = 20;
-print = false;
+print = true;
 [validation_bif, validation_end] = Verify(img_1, img_2, w, print);
 
 %% Run all databases
@@ -40,14 +39,9 @@ for fingerprint = 1:10
     end
 end
 
+%%
 validations_bif_1 = zeros(80,80);
 validations_end_1 = zeros(80,80);
-validations_bif_2 = zeros(80,80);
-validations_end_2 = zeros(80,80);
-validations_bif_3 = zeros(80,80);
-validations_end_3 = zeros(80,80);
-validations_bif_4 = zeros(80,80);
-validations_end_4 = zeros(80,80);
 
 w = 20;
 print = false;
@@ -66,12 +60,18 @@ for img_1 = filenames_1
         validations_bif_1(i,j) = validation_bif;
         validations_end_1(i,j) = validation_end;
         
-        validations_bif_1(j,j) = validation_bif;
-        validations_end_1(j,j) = validation_end;
+        validations_bif_1(j,i) = validation_bif;
+        validations_end_1(j,i) = validation_end;
         clc;
     end
 end
 
+%% Database 2
+validations_bif_2 = zeros(80,80);
+validations_end_2 = zeros(80,80);
+
+w = 20;
+print = false;
 i = 0;
 run = 0;
 for img_1 = filenames_2
@@ -83,16 +83,22 @@ for img_1 = filenames_2
         runs = strcat('Database 2: ', num2str(run), '/3200');
         disp(runs)
         
-        [validation_bif, validation_end] = Verify(img_1, img_2, w);
+        [validation_bif, validation_end] = Verify(img_1, img_2, w, print);
         validations_bif_2(i,j) = validation_bif;
         validations_end_2(i,j) = validation_end;
         
-        validations_bif_2(j,j) = validation_bif;
-        validations_end_2(j,j) = validation_end;
+        validations_bif_2(j,i) = validation_bif;
+        validations_end_2(j,i) = validation_end;
         clc;
     end
 end
 
+%% Database 3
+
+validations_bif_3 = zeros(80,80);
+validations_end_3 = zeros(80,80);
+w = 20;
+print = false;
 i = 0;
 run = 0;
 for img_1 = filenames_3
@@ -104,16 +110,22 @@ for img_1 = filenames_3
         runs = strcat('Database 3: ', num2str(run), '/3200');
         disp(runs)
         
-        [validation_bif, validation_end] = Verify(img_1, img_2, w);
+        [validation_bif, validation_end] = Verify(img_1, img_2, w, print);
         validations_bif_3(i,j) = validation_bif;
         validations_end_3(i,j) = validation_end;
         
-        validations_bif_3(j,j) = validation_bif;
-        validations_end_3(j,j) = validation_end;
+        validations_bif_3(j,i) = validation_bif;
+        validations_end_3(j,i) = validation_end;
         clc;
     end
 end
 
+%% Database 4
+
+validations_bif_4 = zeros(80,80);
+validations_end_4 = zeros(80,80);
+w = 20;
+print = false;
 i = 0;
 run = 0;
 for img_1 = filenames_4
@@ -125,12 +137,12 @@ for img_1 = filenames_4
         runs = strcat('Database 4: ', num2str(run), '/3200');
         disp(runs)
         
-        [validation_bif, validation_end] = Verify(img_1, img_2, w);
+        [validation_bif, validation_end] = Verify(img_1, img_2, w, print);
         validations_bif_4(i,j) = validation_bif;
         validations_end_4(i,j) = validation_end;
         
-        validations_bif_4(j,j) = validation_bif;
-        validations_end_4(j,j) = validation_end;
+        validations_bif_4(j,i) = validation_bif;
+        validations_end_4(j,i) = validation_end;
         clc;
     end
 end
