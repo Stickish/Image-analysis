@@ -40,7 +40,7 @@ M_bkg = mean(m_bkg(:));
 v_bkg = block_variances(block_variances <= bvm);  % vector
 V_bkg = mean(v_bkg(:));
 
-% Blocks with greater mean and smaller variance is the background.
+% Blocks with smaller mean and smaller variance is the background.
 empty_blocks = [];
 full_blocks = [];
 

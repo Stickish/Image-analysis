@@ -14,32 +14,18 @@ filtered_freq = zeros(size(block_freqs));
 [rows, cols] = size(block_freqs);
 U = round(f_size/2);
 
+
 [block_freqs_p, full_blocks_p, d_top] = PadImage(block_freqs, full_blocks, U);
 
-% SAve padded matrix bug
-save('block_freqs_padded.mat', 'block_freqs_p')
-figure(1)
-subplot(1,2,1)
-imshow(block_freqs)
-title(size(block_freqs))
-
-subplot(1,2,2)
-imshow(block_freqs_p)
-title(size(block_freqs_p))
-
-count = 0;
-
 num_full_blocks = size(full_blocks_p,1);
-
 for idx=1:num_full_blocks
     i = full_blocks_p(idx,1);
     j = full_blocks_p(idx,2);
-    % sprintf('idx: %d\ti:%d\tj:%d', idx, i, j)
+    
     if block_freqs_p(i, j) > eps
-        filtered_freq(i-d_top, j) = block_freqs_p(i, j); 
+        filtered_freq(i-d_top, j) = block_freqs_p(i, j);
     end
     if j > U+1 && j <= cols-U
-        count = count + 1;
         num = 0;
         den = 0;
         for u=-U+1:U
@@ -51,20 +37,19 @@ for idx=1:num_full_blocks
         filtered_freq(i - d_top, j) = num/den;
     end
 end
-sprintf('number of times zeros fixed %d',count)
 end
 
 function output = mu(f)
-    if f > 0
-        output = 1;
-    else
-        output = 0;
-    end
+if f > 0
+    output = 1;
+else
+    output = 0;
+end
 end
 
 function [new_img, full_blocks_p, d_top] = PadImage(f_image, full_blocks, U)
 % Pad image with zeros enough so that we can use all info in the image
-% find min i, max i, min j, max j and then add U zeros 
+% find min i, max i, min j, max j and then add U zeros
 
 % -----------------------------------------------------
 % Currently only pads top and bottom, can fix but most pictures look ok
@@ -79,19 +64,59 @@ d_top = 0;
 full_blocks_p = full_blocks;
 % i > U+1 && i <= M-U && j > U+1 && j <= N-U
 
-% Add zeros to the top
-if i_min < U
-    d_top = U;
-    e_top = zeros(d_top, N);
-    p_image = [e_top; f_image];
-    full_blocks_p(:, 1) = full_blocks(:, 1) + d_top;
-end
+% % Add zeros to the top
+% if i_min < U
+%     disp('i_min < U')
+%     d_top = U;
+%     e_top = zeros(d_top, N);
+%     p_image = [e_top; f_image];
+%     full_blocks_p(:, 1) = full_blocks(:, 1) + d_top;
+%     
+%     if i_max > M - U
+%         disp('i_max > M-U')
+%         d = U;
+%         e = zeros(d, N);
+%         p_image = [p_image; e];
+%         full_blocks_p(:, 1) = full_blocks(:, 1);
+%     end
+% end
+% 
+% % Add zeros to the bottom
+% if i_min >= U
+%     disp('i_max >= U')
+%     full_blocks_p(:, 1) = full_blocks(:, 1);
+%     
+%     if i_max > M - U
+%         disp('i_max > M-U')
+%         d = U;
+%         e = zeros(d, N);
+%         p_image = [p_image; e];
+%         full_blocks_p(:, 1) = full_blocks(:, 1);
+%     end
+% end
+
+%
+% if (i_max > M - U) && (i_min >= U)
+%     disp('(i_max > M - U) && (i_min >= U)')
+%     % Add zeros to the bottom
+%     d = U;
+%     e = zeros(d, N);
+%     p_image = [f_image; e];
+%     full_blocks_p(:, 1) = full_blocks(:, 1) + 1;
+% end
+
+
+d_top = U;
+e_top = zeros(d_top, N);
+p_image = [e_top; f_image];
+full_blocks_p(:, 1) = full_blocks(:, 1) + d_top;
+
 % Add zeros to the bottom
-if i_max > M - U
-    d = U;
-    e = zeros(d, N);
-    p_image = [p_image; e];
-end
+
+d = U;
+e = zeros(d, N);
+p_image = [p_image; e];
+
 new_img = p_image;
 
 end
