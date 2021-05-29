@@ -25,7 +25,7 @@ end
 
 if print
     fig_bif = figure;
-    imshow(imcomplement(img))
+    imshow(img)
     hold on
     plot(j_bif, i_bif, 'b o')
     name = char(name);
@@ -46,23 +46,26 @@ for x1 = 1:X
         end
     end
     
-    for e = 1:length(empty_blocks)
-        xv = w*(empty_blocks(e,1)-1)+1;
-        yv = w*(empty_blocks(e,2)-1)+1;
-        p1 = [xv, yv];
-        p2 = [xv+(w - 1), yv];
-        p3 = [xv, yv+(w - 1)];
-        p4 = [xv+(w - 1), yv+(w - 1)];
-        p5 = [xv, yv+round(w/2)];
-        p6 = [xv+(w - 1), yv+round(w/2)];
-        p7 = [xv+round(w/2), yv];
-        p8 = [xv+round(w/2), yv+(w - 1)];
-        
-        if sqrt((i_bif(x1)-p1(1))^2+(j_bif(x1)-p1(2))^2) <= 20 || sqrt((i_bif(x1)-p2(1))^2+(j_bif(x1)-p2(2))^2) <= 20 || sqrt((i_bif(x1)-p3(1))^2+(j_bif(x1)-p3(2))^2) <= 20 || sqrt((i_bif(x1)-p4(1))^2+(j_bif(x1)-p4(2))^2) <= 20
-            bifurcations(i_bif(x1),j_bif(x1)) = 0;
-        end
-        if sqrt((i_bif(x1)-p5(1))^2+(j_bif(x1)-p5(2))^2) <= 20 || sqrt((i_bif(x1)-p6(1))^2+(j_bif(x1)-p6(2))^2) <= 20 || sqrt((i_bif(x1)-p7(1))^2+(j_bif(x1)-p7(2))^2) <= 20 || sqrt((i_bif(x1)-p8(1))^2+(j_bif(x1)-p8(2))^2) <= 20
-            bifurcations(i_bif(x1),j_bif(x1)) = 0;
+    [me, ne] = size(empty_blocks);
+    if me > 1 && ne > 1
+        for e = 1:length(empty_blocks)
+            xv = w*(empty_blocks(e,1)-1)+1;
+            yv = w*(empty_blocks(e,2)-1)+1;
+            p1 = [xv, yv];
+            p2 = [xv+(w - 1), yv];
+            p3 = [xv, yv+(w - 1)];
+            p4 = [xv+(w - 1), yv+(w - 1)];
+            p5 = [xv, yv+round(w/2)];
+            p6 = [xv+(w - 1), yv+round(w/2)];
+            p7 = [xv+round(w/2), yv];
+            p8 = [xv+round(w/2), yv+(w - 1)];
+            
+            if sqrt((i_bif(x1)-p1(1))^2+(j_bif(x1)-p1(2))^2) <= 20 || sqrt((i_bif(x1)-p2(1))^2+(j_bif(x1)-p2(2))^2) <= 20 || sqrt((i_bif(x1)-p3(1))^2+(j_bif(x1)-p3(2))^2) <= 20 || sqrt((i_bif(x1)-p4(1))^2+(j_bif(x1)-p4(2))^2) <= 20
+                bifurcations(i_bif(x1),j_bif(x1)) = 0;
+            end
+            if sqrt((i_bif(x1)-p5(1))^2+(j_bif(x1)-p5(2))^2) <= 20 || sqrt((i_bif(x1)-p6(1))^2+(j_bif(x1)-p6(2))^2) <= 20 || sqrt((i_bif(x1)-p7(1))^2+(j_bif(x1)-p7(2))^2) <= 20 || sqrt((i_bif(x1)-p8(1))^2+(j_bif(x1)-p8(2))^2) <= 20
+                bifurcations(i_bif(x1),j_bif(x1)) = 0;
+            end
         end
     end
 end
@@ -71,7 +74,7 @@ end
 
 if print
     fig_bif2 = figure;
-    imshow(imcomplement(img))
+    imshow(img)
     hold on
     plot(j_bif, i_bif, 'b o')
     name = char(name);
